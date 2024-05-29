@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework'
+    'rest_framework',
+    'users.apps.UsersConfig',
+    'restapi_todo.apps.RestapiTodoConfig'
 ]
 
 MIDDLEWARE = [
@@ -100,6 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'users.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
