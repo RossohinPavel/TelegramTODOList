@@ -10,4 +10,10 @@ class PhoneValidator(RegexValidator):
 
 # Create your models here.
 class User(auth_models.AbstractUser):
-    phone = models.CharField(max_length=255, blank=True, null=True, validators=[PhoneValidator()])
+    phone = models.CharField(
+        max_length=11, 
+        unique=True,
+        blank=True, 
+        null=True, 
+        validators=[PhoneValidator()]
+    )
