@@ -1,0 +1,33 @@
+x-app_environment: &app_environment
+  environment:
+    # Postgres
+    - POSTGRES_NAME
+    - POSTGRES_USER
+    - POSTGRES_PASSWORD
+    - POSTGRES_HOST
+    - POSTGRES_PORT
+
+services:
+  db:
+    restart: unless-stopped
+    image: postgres:16.3-alpine
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - ./postgresdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD
+      - POSTGRES_PORT
+      - POSTGRES_NAME
+      - POSTGRES_USER
+
+  backend:
+    restart: unless-stopped
+    build:
+      context: ./backend
+    ports:
+      - 8000:8000
+    command: ./entrypoint.sh
+    volumes:
+      - ./backend:/app
+    <<: *app_environment
