@@ -3,10 +3,16 @@ from .models import Task
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    status = serializers.IntegerField(required=False)
+
     class Meta:
         model = Task
         fields = '__all__'
 
-    def validate_work_time(self, value):
-        print(f'  --  {value}  --  ', type(value))
-        return value
+
+class TasksListSerializer(serializers.ModelSerializer):
+    status = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Task
+        fields = ['id', 'title', 'status']

@@ -2,33 +2,35 @@ from rest_framework.request import Request
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from .models import Task
-from .serializers import TaskSerializer
+from django.db.models import Q
+from .serializers import TaskSerializer, TasksListSerializer
 
 
 # Create your views here.
 class TasksViewSet(ViewSet):
     """Класс представления для задач"""
-    ALLOWED_FIELDS = ('title', 'description', 'work_time', 'finish_by', 'finish_time')
 
     def list(self, request: Request, phone: str):
-        """Для получения/чтения списка записей."""
-        queryset = Task.objects.filter(phone=phone)
-        serializer = TaskSerializer(queryset, many=True)
+        """Для получения/чтения списка записей"""
+        query = Q(phone=phone)
+        if not request.GET.get('completed', False):
+            query &= Q(finish_time=None)
+        queryset = Task.objects.filter(query).values('id', 'title', 'status')
+        serializer = TasksListSerializer(queryset, many=True, partial=True)
         return Response(serializer.data)
-
-    def create(self, request: Request, phone: str):
-        """Создание записи"""
-        data = {'phone': phone, **request.data}
-        serializer = TaskSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'status': 'ok', 'id': serializer.data['id']})
 
     def retrieve(self, request: Request, phone: str, pk=None):
         """Для получения/чтения одной записи по идентификатору pk (id)"""
         task = Task.objects.get(phone=phone, pk=pk)
         serializer = TaskSerializer(task)
         return Response(serializer.data)
+
+    def create(self, request: Request, phone: str):
+        """Создание записи"""
+        serializer = TaskSerializer(data={'phone': phone, **request.data})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'status': 'ok', 'message': serializer.data['id']})
 
     # def update(self, request, pk=None):
     #     pass
@@ -38,12 +40,13 @@ class TasksViewSet(ViewSet):
     #     for k, v in request.data.items():
     #         if k in 
 
-    # def destroy(self, request: Request, phone: str, pk=None):
-    #     """Удаление записи"""
-    #     task = Task.objects.get(user__phone=phone, pk=pk)
-    #     task.delete()
-    #     return Response({'status': 'ok'})
+    def destroy(self, request: Request, phone: str, pk=None):
+        """Удаление записи"""
+        task = Task.objects.get(pk=pk, phone=phone)
+        name = task.title
+        task.delete()
+        return Response({'status': 'ok', 'message': f'Task <{name}> deleted.'})
 
-    # def handle_exception(self, exc):
-    #     """Обрабатываем возможные исключения"""
-    #     return Response({'error': str(exc)})
+    def handle_exception(self, exc):
+        """Обрабатываем возможные исключения"""
+        return Response({'status': 'error', 'message': str(exc)})
