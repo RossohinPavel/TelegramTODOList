@@ -21,16 +21,17 @@ class TasksViewSet(ViewSet):
 
     def retrieve(self, request: Request, phone: str, pk=None):
         """Для получения/чтения одной записи по идентификатору pk (id)"""
-        task = Task.objects.get(phone=phone, pk=pk)
+        task = Task.objects.get(pk=pk, phone=phone)
         serializer = TaskSerializer(task)
         return Response(serializer.data)
 
     def create(self, request: Request, phone: str):
         """Создание записи"""
-        serializer = TaskSerializer(data={'phone': phone, **request.data})
+        request.data['phone'] = phone
+        serializer = TaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'status': 'ok', 'message': serializer.data['id']})
+        return Response(self.get_response_dict(serializer.data['id']))
 
     # def update(self, request, pk=None):
     #     pass
@@ -45,8 +46,12 @@ class TasksViewSet(ViewSet):
         task = Task.objects.get(pk=pk, phone=phone)
         name = task.title
         task.delete()
-        return Response({'status': 'ok', 'message': f'Task <{name}> deleted.'})
+        return Response(self.get_response_dict(f'Task <{name}> deleted.'))
 
     def handle_exception(self, exc):
         """Обрабатываем возможные исключения"""
-        return Response({'status': 'error', 'message': str(exc)})
+        return Response(self.get_response_dict(str(exc), status='error'))
+
+    def get_response_dict(self, message, status : str = 'ok') -> dict:
+        """Возвращает заготовленный словарь для ответа сервера."""
+        return {'status': status, 'message': message}
