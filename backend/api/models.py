@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from .services import TaskServiceMixin
 
 
 class TaskManager(models.Manager):
@@ -33,7 +34,7 @@ class TaskManager(models.Manager):
 
 
 # Create your models here.
-class Task(models.Model):
+class Task(models.Model, TaskServiceMixin):
     """
     phone - Номер телефона пользователя
     title - Имя задачи

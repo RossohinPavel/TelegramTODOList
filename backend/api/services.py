@@ -9,27 +9,37 @@ class ServiceMixin:
     Называть методы необходимо service_<attr> где <attr> - название атрибута, 
     которому присваивается значение.
     """
-    __methods = None
+    __service_methods = None
 
     def __new__(cls, *args, **kwargs):
-        if cls.__methods is None:
+        if cls.__service_methods is None:
             # Сохраним в приватную переменную методы, 
             # которые будут впоследствии вызываться при валидации данных.
-            pref = 'service_'
-            cls.__methods = {n.replace(pref, ''): getattr(cls, n) for n in dir(cls) if n.startswith(pref)}
+            cls.__service_methods = tuple(getattr(cls, n) for n in dir(cls) if n.startswith('service_'))
         return super().__new__(cls)
     
-    def __setattr__(self, name: str, value: Any) -> None:
-        if value is not None and name in self.__methods:
-            value = self.__methods[name](self, value)
-        return super().__setattr__(name, value)
+    # Even though the admin site invokes the method. 
+    # The clean method is not invoked on save() or create() by default. 
+    # So the best practice is to override the save method of the model and 
+    # invoke the full_clean() method that under the hood calls clean and other validation hooks.
+    
+    def clean(self):
+        print('---sss---')
+        if not self.__service_methods:
+            return
+        for method in self.__service_methods:
+            method(self)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
 
 class TaskServiceMixin(ServiceMixin):
     """Обслуживание модели Task"""
 
-    def service_finish_by(self, value):
+    def service_actual_time(self):
         """Проверка на то, что время окончания задачи больше времени постановки в работу"""
-        if value <= self.work_time:
-            raise ValidationError({'finish_by': 'Finish time cannot be less to do at work'})
-        return value
+        print('---sss---')
+        if self.actual_time and self.finish_by and self.actual_time >= self.finish_by:
+            raise ValidationError({'actual_time': "Task's actual time should be less then finish by"})
