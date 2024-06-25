@@ -18,13 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 
 from rest_framework.routers import SimpleRouter
-from api.views import TasksViewSet
 
 
-router = SimpleRouter()
-router.register('', TasksViewSet, basename='tasks')
+
+# router = SimpleRouter()
+# router.register('', TasksViewSet, basename='tasks')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/<str:phone>/', include(router.urls))
+    # path('api/v1/<str:phone>/', include(router.urls))
 ]
