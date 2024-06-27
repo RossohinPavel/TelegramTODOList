@@ -16,12 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from users import views
+
 
 api_urls = [
-    path('', include('api.urls')),
-    path('check_user', views.check_user, name='check_user_api'),
-    path('set_telegram_id', views.set_telegram_id, name='set_telegram_id_api')
+    path('', include('tasks.urls.api')),
+    path('', include('users.urls.api'))
 ]
 
 
