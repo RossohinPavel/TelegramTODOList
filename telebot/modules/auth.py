@@ -1,9 +1,9 @@
 """Модуль для аутенфикации пользователя"""
-from aiogram import Router
+from aiogram import F, Router, types
 from aiogram.filters.command import Command
-from aiogram import types
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from aiogram import F
+import aiohttp
+import json
 
 
 auth_router = Router(name='__auth__')
@@ -36,15 +36,25 @@ async def contact_keyboard():
 @auth_router.message(F.content_type.in_({'contact'}))
 async def handle_contact(message: types.Message):
     if message.from_user.id == message.contact.user_id:
-        r, msg = await check_user(message.contact.phone_number, message.contact.user_id)
-        if r:
-            msg = "Контакт подтвержден. Вы можете пользоваться ботом."
+        msg = await set_telegram_id(message.contact.phone_number, message.contact.user_id)
         await message.answer(text=msg, reply_markup=types.reply_keyboard_remove.ReplyKeyboardRemove())
 
     else:
         await message.answer("Ошибка. Контакт не совпадает с отправителем")
 
 
-async def check_user(phone: str, telegram_id: int) -> tuple[bool, str]:
+async def set_telegram_id(phone: str, telegram_id: int) -> tuple[bool, str]:
     """Запрос к основному серверу для проверки пользователя."""
-    return False, 'something wrong'
+    async with aiohttp.request(
+        method='POST', 
+        url="http://backend:8000/api/set_telegram_id",
+        # headers={'Content-Type': 'application/json'},
+        json={'phone': phone, 'telegram_id': telegram_id},
+    ) as response:
+        status = response.status
+        json = await response.json()
+    
+    if status == 200:
+        return json['message']
+    else:
+        return 'error'

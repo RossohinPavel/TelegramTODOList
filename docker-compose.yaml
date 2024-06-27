@@ -42,3 +42,5 @@ services:
     volumes:
       - ./telebot:/app
     <<: *app_environment
+    depends_on:
+      - backend
