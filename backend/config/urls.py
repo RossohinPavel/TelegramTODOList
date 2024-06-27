@@ -16,15 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from users import views
 
-from rest_framework.routers import SimpleRouter
+api_urls = [
+    path('', include('api.urls')),
+    path('check_user', views.check_user, name='check_user_api'),
+    path('set_telegram_id', views.set_telegram_id, name='set_telegram_id_api')
+]
 
-
-
-# router = SimpleRouter()
-# router.register('', TasksViewSet, basename='tasks')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('api/v1/<str:phone>/', include(router.urls))
+    path('api/', include(api_urls)),
 ]

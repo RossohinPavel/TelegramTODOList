@@ -1,9 +1,15 @@
-# from rest_framework.request import Request
+from rest_framework.request import Request
 from rest_framework.viewsets import ViewSet
-# from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.response import Response
 # from .models import Task
 # from django.db.models import Q
 # from .serializers import TaskSerializer, TasksListSerializer
+
+
+def _get_response_dct(message, status: str = 'ok'):
+    """Возвращает заготовленный словарь для ответа сервера."""
+    return {'status': status, 'message': message}
 
 
 # Create your views here.
@@ -52,6 +58,17 @@ class TasksViewSet(ViewSet):
 #         """Обрабатываем возможные исключения"""
 #         return Response(self.get_response_dict(str(exc), status='error'))
 
-#     def get_response_dict(self, message, status : str = 'ok') -> dict:
-#         """Возвращает заготовленный словарь для ответа сервера."""
-#         return {'status': status, 'message': message}
+
+class CheckUserApi(APIView):
+    """Подключение telegram к базе"""
+
+    def get(self, request: Request):
+        """Осуществляет проверку подключения telegram_id"""
+        return Response({'test': 'ok'})
+
+    def post(self, request: Request):
+        """Вносит клиента в базу"""
+        return Response({'test': 'ok'})
+
+    def handle_exception(self, exc):
+        return Response(_get_response_dct(str(exc), status='error'))
