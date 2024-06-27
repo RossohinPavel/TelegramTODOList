@@ -6,6 +6,8 @@ x-app_environment: &app_environment
     - POSTGRES_PASSWORD
     - POSTGRES_HOST
     - POSTGRES_PORT
+    # Telebot
+    - TELEBOT_TOKEN
 
 services:
   db:
@@ -30,4 +32,13 @@ services:
     command: ./entrypoint.sh
     volumes:
       - ./backend:/app
+    <<: *app_environment
+  
+  telebot:
+    restart: unless-stopped
+    build:
+      context: ./telebot
+    command: python main.py
+    volumes:
+      - ./telebot:/app
     <<: *app_environment

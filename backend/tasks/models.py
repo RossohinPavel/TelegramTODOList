@@ -18,7 +18,6 @@ class Task(models.Model):
     def clean(self):
         """Проверять надо только то, чтобы finish_by было больше actual_on"""
         if self.actual_on and self.finish_by and not self.finish_by > self.actual_on:
-            print(self.actual_on, self.finish_by)
             raise ValidationError({'finish_by': "finish_by attribute should be great then actual_on"})
         return super().clean()
 
