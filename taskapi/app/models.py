@@ -9,7 +9,7 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, autoincrement=True, primary_key=True)
-    phone_number = Column(String(15), nullable=False, unique=True)
+    phone_number = Column(String(15), nullable=False, unique=True, index=True)
     telegram_id = Column(Integer, index=True)
     tasks = relationship('Task', back_populates='user')
 

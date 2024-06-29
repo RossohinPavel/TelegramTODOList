@@ -7,9 +7,8 @@ from app import users
 app = FastAPI()
 
 
-app.get('/user')(users.check_user)
-app.post('/user')(users.create_user)
-
+app.get('/users')(users.check_user)
+app.post('/users', status_code=201)(users.create_user)
 
 
 @app.get("/")
