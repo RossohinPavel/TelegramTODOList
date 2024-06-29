@@ -1,7 +1,6 @@
 x-app_environment: &app_environment
   environment:
     # Postgres
-    - POSTGRES_NAME
     - POSTGRES_USER
     - POSTGRES_PASSWORD
     - POSTGRES_HOST
@@ -23,24 +22,37 @@ services:
       - POSTGRES_NAME
       - POSTGRES_USER
 
-  backend:
+  taskapi:
     restart: unless-stopped
-    build:
-      context: ./backend
     ports:
       - 8000:8000
-    command: ./entrypoint.sh
+    build: 
+      context: ./taskapi
+    command: >
+      sh -c "./wait-for &&
+             uvicorn main:app --reload --host 0.0.0.0 --port 8000"
     volumes:
-      - ./backend:/app
-    <<: *app_environment
+      - ./taskapi:/app
+    <<: *app_environment    
+
+  # backend:
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./backend
+  #   ports:
+  #     - 8000:8000
+  #   command: ./entrypoint.sh
+  #   volumes:
+  #     - ./backend:/app
+  #   <<: *app_environment
   
-  telebot:
-    restart: unless-stopped
-    build:
-      context: ./telebot
-    command: python main.py
-    volumes:
-      - ./telebot:/app
-    <<: *app_environment
-    depends_on:
-      - backend
+  # telebot:
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./telebot
+  #   command: python main.py
+  #   volumes:
+  #     - ./telebot:/app
+  #   <<: *app_environment
+  #   depends_on:
+  #     - backend
