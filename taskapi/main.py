@@ -9,6 +9,8 @@ app = FastAPI()
 
 app.get('/users')(users.check_user)
 app.post('/users', status_code=201)(users.create_user)
+app.patch('/users/{user_id}', status_code=200)(users.update_user)
+app.delete('/users/{user_id}', status_code=204)(users.delete_user)
 
 
 @app.get("/")

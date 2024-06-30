@@ -1,3 +1,8 @@
+"""
+Приложение для работы с пользователями. 
+Публичные функции - обработчики запроса. 
+Защищенные - выполняют работу с базой данных
+"""
 from pydantic import BaseModel
 from sqlalchemy import select
 from fastapi import HTTPException
@@ -10,7 +15,11 @@ class CreateUserSchema(BaseModel):
     telegram_id: int | None = None
 
 
-# Функции для приложения FastApi
+class UpdateUserSchema(BaseModel):
+    phone_number: str | None = None
+    telegram_id: int | None = None
+
+
 async def check_user(phone_number: str | None = None, telegram_id: int | None = None):
     """Проверка существования пользователя"""
     if phone_number is None and telegram_id is None:
@@ -60,3 +69,40 @@ async def _create_user(session: AsyncSession, phone_number: str, telegram_id: in
         return user
     except:
         await session.rollback()
+
+
+async def delete_user(user_id: int):
+    """Удаление пользователя"""
+    async with BaseSession() as session:
+        user = await _get_user_from_id(session, user_id)
+        await session.delete(user)
+        try:
+            await session.commit()
+        except:
+            await session.rollback()
+            raise HTTPException(status_code=500, detail='Something went wrong')
+
+
+async def _get_user_from_id(session: AsyncSession, user_id) -> User:
+    """Возвращает объект пользователя или райзит 404"""
+    user = await session.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+async def update_user(user_id: int, data: UpdateUserSchema):
+    """Обновление информации о пользователе"""
+    if data.phone_number is None and data.telegram_id is None:
+        raise HTTPException(status_code=400)
+    async with BaseSession() as session:
+        user = await _get_user_from_id(session, user_id)
+        if data.phone_number:
+            user.phone_number = data.phone_number
+        if data.telegram_id is not None:
+            user.telegram_id = data.telegram_id
+        try:
+            await session.commit()
+        except:
+            await session.rollback()
+            raise HTTPException(status_code=500, detail='Something went wrong')
