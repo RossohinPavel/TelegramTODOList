@@ -29,21 +29,21 @@ async def check_user(phone_number: str | None = None, telegram_id: int | None = 
 
 async def _get_user_or_404(session: AsyncSession, phone_number: str | None = None, telegram_id: int | None = None) -> User:
     """Возвращает объект пользователя, если он сеть в базе или райзит 404"""
-    user = await _get_user(session, phone_number, telegram_id)
+    user = await _get_user(session, CreateUserSchema(phone_number=phone_number, telegram_id=telegram_id))
     if user is None:
         raise HTTPException(status_code=404, detail="User not found") 
     return user[0]
 
 
-async def _get_user(session: AsyncSession, phone_number: str | None = None, telegram_id: int | None = None) -> User | None:
+async def _get_user(session: AsyncSession, data: CreateUserSchema) -> User | None:
     """возвращает объект пользователя если он есть в базе или None"""
-    if phone_number is None and telegram_id is None:
+    if data.phone_number is None and data.telegram_id is None:
         raise HTTPException(status_code=400)
     query = None
-    if telegram_id is not None:
-        query = User.telegram_id == telegram_id
-    if phone_number is not None:
-        query = User.phone_number == phone_number
+    if data.telegram_id is not None:
+        query = User.telegram_id == data.telegram_id
+    if data.phone_number is not None:
+        query = User.phone_number == data.phone_number
     results = await session.execute(select(User).where(query))
     return results.first()
 
@@ -51,19 +51,19 @@ async def _get_user(session: AsyncSession, phone_number: str | None = None, tele
 async def create_user(data: CreateUserSchema):
     """Создание пользователя по номеру телефона"""
     async with BaseSession() as session:
-        user = await _get_user(session, data.phone_number, data.telegram_id)
+        user = await _get_user(session, data)
         if user is not None:
             raise HTTPException(status_code=422, detail='User alredy existing')
         # Создание пользователя
-        user = await _create_user(session, data.phone_number, data.telegram_id)
+        user = await _create_user(session, data)
     
     return user
 
 
-async def _create_user(session: AsyncSession, phone_number: str, telegram_id: int | None = None) -> User | None:
+async def _create_user(session: AsyncSession, data: CreateUserSchema) -> User | None:
     """Создает пользователя и возвращает его id"""
     # Проверяем наличие пользователя в базе
-    user = User(phone_number=phone_number, telegram_id=telegram_id)
+    user = User(**data.model_dump())
     session.add(user)
     try:
         await session.commit()
@@ -81,7 +81,7 @@ async def delete_user(user_id: int):
             await session.commit()
         except:
             await session.rollback()
-            raise HTTPException(status_code=500, detail='Something went wrong')
+            raise HTTPException(status_code=500, detail='delete_user error')
 
 
 async def _get_user_from_id(session: AsyncSession, user_id) -> User:

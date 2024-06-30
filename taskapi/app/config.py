@@ -19,3 +19,5 @@ Base = declarative_base()
 
 # Сессия
 BaseSession = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+AsyncSession.run_sync
