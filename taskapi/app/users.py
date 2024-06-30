@@ -22,35 +22,36 @@ class UpdateUserSchema(BaseModel):
 
 async def check_user(phone_number: str | None = None, telegram_id: int | None = None):
     """Проверка существования пользователя"""
-    if phone_number is None and telegram_id is None:
-        raise HTTPException(status_code=400)
-
     async with BaseSession() as session:
-        user = await _check_user(session, phone_number, telegram_id)
-    
+        user = await _get_user_or_404(session, phone_number, telegram_id)   
+    return user
+
+
+async def _get_user_or_404(session: AsyncSession, phone_number: str | None = None, telegram_id: int | None = None) -> User:
+    """Возвращает объект пользователя, если он сеть в базе или райзит 404"""
+    user = await _get_user(session, phone_number, telegram_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    
+        raise HTTPException(status_code=404, detail="User not found") 
     return user[0]
 
 
-async def _check_user(session: AsyncSession, phone_number: str | None = None, telegram_id: int | None = None) -> User | None:
-    """возвращает объект пользователя если он есть в базе"""
+async def _get_user(session: AsyncSession, phone_number: str | None = None, telegram_id: int | None = None) -> User | None:
+    """возвращает объект пользователя если он есть в базе или None"""
+    if phone_number is None and telegram_id is None:
+        raise HTTPException(status_code=400)
     query = None
     if telegram_id is not None:
         query = User.telegram_id == telegram_id
     if phone_number is not None:
         query = User.phone_number == phone_number
-
-    if query is not None:
-        res = await session.execute(select(User).where(query))
-        return res.first()
+    results = await session.execute(select(User).where(query))
+    return results.first()
 
 
 async def create_user(data: CreateUserSchema):
     """Создание пользователя по номеру телефона"""
     async with BaseSession() as session:
-        user = await _check_user(session, data.phone_number, data.telegram_id)
+        user = await _get_user(session, data.phone_number, data.telegram_id)
         if user is not None:
             raise HTTPException(status_code=422, detail='User alredy existing')
         # Создание пользователя
