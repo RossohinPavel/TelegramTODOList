@@ -4,17 +4,21 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from os import getenv
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
+from app.config import settings
+
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRES_USER", getenv("POSTGRES_USER"))
-config.set_section_option(section, "POSTGRES_PASSWORD", getenv("POSTGRES_PASSWORD"))
-config.set_section_option(section, "POSTGRES_HOST", getenv("POSTGRES_HOST"))
-config.set_section_option(section, "POSTGRES_PORT", getenv("POSTGRES_PORT"))
+config.set_section_option(section, "POSTGRES_USER", settings.USER)
+config.set_section_option(section, "POSTGRES_PASSWORD", settings.PASS)
+config.set_section_option(section, "POSTGRES_HOST", settings.HOST)
+config.set_section_option(section, "POSTGRES_PORT", settings.PORT)
+
+# Установка адреса бд
+config.set_main_option("sqlalchemy.url", settings.DATABASE_ASYNC_URL + "?async_fallback=True")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -25,8 +29,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.models import User
-target_metadata = User.metadata
+from app.models import Base, User
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -73,7 +77,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            compare_server_default=True
         )
 
         with context.begin_transaction():
