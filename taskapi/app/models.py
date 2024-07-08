@@ -57,7 +57,3 @@ class Task(Base):
             return
         if actual_on >= finish_by:
             raise ValueError("finish_by should be great then actual_on")
-    
-    # @hybrid_property
-    # def status(self):
-    #     return self.id

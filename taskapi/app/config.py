@@ -21,4 +21,10 @@ settings = Settings()
 engine = create_async_engine(settings.DATABASE_ASYNC_URL, echo=True)
 
 # Сессия
-BaseSession = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+BaseSession = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False) #type: ignore
+
+
+async def get_session():
+    """Выдает асинхронную сессию"""
+    async with BaseSession() as session:
+        yield session
