@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from fastapi import HTTPException
+from typing import Annotated
+from datetime import datetime
 
 
 class _BaseUserSchema(BaseModel):
@@ -22,3 +24,17 @@ class CreateUserSchema(_BaseUserSchema):
 
 class UpdateUserSchema(_BaseUserSchema):
     id: int
+
+
+class CreateTaskSchema(BaseModel):
+    title: str
+    description: str = ''
+    actual_on: Annotated[datetime, 'Timestamps']
+    finish_by: Annotated[datetime, 'Timestamps']
+
+
+class UpdateTaskSchema(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    actual_on: Annotated[datetime, 'Timestamps'] | None = None
+    finish_by: Annotated[datetime, 'Timestamps'] | None = None

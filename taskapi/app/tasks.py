@@ -1,41 +1,31 @@
+"""
+Приложение для работы с задачами.
+"""
+from fastapi import APIRouter, Depends, HTTPException
+from .config import AsyncSession, get_session
+from .schemas import UserSchema, CreateTaskSchema, UpdateTaskSchema
 from .users import _get_user_or_404
-from .config import BaseSession, AsyncSession
 from .models import Task
-from pydantic import BaseModel
-from datetime import datetime
-from fastapi import HTTPException
-from typing import Annotated
 
 
-class CreateTaskSchema(BaseModel):
-    title: str
-    description: str = ''
-    actual_on: Annotated[datetime, 'Timestamps']
-    finish_by: Annotated[datetime, 'Timestamps']
+tasks_router = APIRouter(prefix='')
 
 
-class UpdateTaskSchema(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    actual_on: Annotated[datetime, 'Timestamps'] | None = None
-    finish_by: Annotated[datetime, 'Timestamps'] | None = None
-
-
-async def get_tasks_list(phone_number: str | None = None, telegram_id: int | None = None):
+@tasks_router.get('/')
+async def get_tasks_list(params=Depends(UserSchema), session=Depends(get_session)):
     """Получение списка задач"""
-    async with BaseSession() as session:
-        user = await _get_user_or_404(session, phone_number, telegram_id)
-        await session.refresh(user, attribute_names=["tasks"])
-        return user.tasks
+    user = await _get_user_or_404(params, session)
+    await session.refresh(user, attribute_names=["tasks"])
+    return user.tasks
 
 
-async def get_task(task_id: int):
+@tasks_router.get('/{task_id}')
+async def get_task(task_id: int, session=Depends(get_session)):
     """Получение информации по задаче по ее id"""
-    async with BaseSession() as session:
-        return await _get_task_or_404(session, task_id)
+    return await _get_task_or_404(task_id, session)
 
 
-async def _get_task_or_404(session: AsyncSession, task_id) -> Task:
+async def _get_task_or_404(task_id: int, session: AsyncSession) -> Task:
     """Получение задачки или 404"""
     task = await session.get(Task, task_id)
     if task is None:
@@ -43,48 +33,49 @@ async def _get_task_or_404(session: AsyncSession, task_id) -> Task:
     return task
 
 
-async def create_task(data: CreateTaskSchema, phone_number: str | None = None, telegram_id: int | None = None):
+@tasks_router.post('/', status_code=201)
+async def create_task(data: CreateTaskSchema, params=Depends(UserSchema), session=Depends(get_session)):
     """Создание задачи"""
-    async with BaseSession() as session:
-        user = await _get_user_or_404(session, phone_number, telegram_id)
-        task = await _update_task(Task(), user=user, **data.model_dump())
-        session.add(task)
-        try:
-            await session.commit()
-            return {'task': task.id}
-        except:
-            await session.rollback()
+    task = await _update_task(Task(), **data.model_dump())
+    task.user = await _get_user_or_404(params, session)
+    session.add(task)
+    try:
+        await session.commit()
+        await session.refresh(task)
+        return task
+    except:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail='create_task error')
 
 
-async def update_task(task_id: int, data: UpdateTaskSchema):
+@tasks_router.patch('/{task_id}', status_code=200)
+async def update_task(task_id: int, data: UpdateTaskSchema, session=Depends(get_session)):
     """Обновление задачки"""
-    async with BaseSession() as session:
-        task = await _get_task_or_404(session, task_id)
-        task = await _update_task(task, **data.model_dump())
-        try:
-            await session.commit()
-        except:
-            await session.rollback()
+    task = await _get_task_or_404(task_id, session)
+    task = await _update_task(task, **data.model_dump(exclude_none=True))
+    try:
+        await session.commit()
+    except:
+        await session.rollback()
 
 
 async def _update_task(task: Task, **kwargs):
     """Обновляет объект задачи и райзит ошибки, например, валидации"""
     try:
         for key, value in kwargs.items():
-            if value is not None:
-                setattr(task, key, value)
+            setattr(task, key, value)
         return task
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=(str(ve)))
 
 
-async def delete_task(task_id: int):
+@tasks_router.delete('/{task_id}', status_code=204)
+async def delete_task(task_id: int, session=Depends(get_session)):
     """Удаление задачки"""
-    async with BaseSession() as session:
-        task = await _get_task_or_404(session, task_id)
-        await session.delete(task)
-        try:
-            await session.commit()
-        except:
-            await session.rollback()
-            raise HTTPException(status_code=500, detail='delete_task error')
+    task = await _get_task_or_404(task_id, session)
+    await session.delete(task)
+    try:
+        await session.commit()
+    except:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail='delete_task error')
