@@ -7,14 +7,14 @@ x-app_environment: &app_environment
     - POSTGRES_PORT
     - POSTGRES_NAME
     # Telebot
-    - TELEBOT_TOKEN
+    - BOT_TOKEN
 
 services:
   db:
     restart: unless-stopped
     image: postgres:16.3-alpine
-    ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    # ports:
+    #   - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - ./postgresdata:/var/lib/postgresql/data
     environment:
@@ -25,8 +25,8 @@ services:
 
   api:
     restart: unless-stopped
-    ports:
-      - 8000:8000
+    # ports:
+    #   - 8000:8000
     build: 
       context: ./api
     command: >
@@ -36,13 +36,13 @@ services:
       - ./api:/app
     <<: *app_environment    
   
-  # telebot:
-  #   restart: unless-stopped
-  #   build:
-  #     context: ./telebot
-  #   command: python main.py
-  #   volumes:
-  #     - ./telebot:/app
-  #   <<: *app_environment
-  #   depends_on:
-  #     - backend
+  bot:
+    restart: unless-stopped
+    build:
+      context: ./bot
+    command: python main.py
+    volumes:
+      - ./bot:/app
+    <<: *app_environment
+    depends_on:
+      - api
