@@ -22,29 +22,18 @@ services:
       - POSTGRES_NAME
       - POSTGRES_USER
 
-  taskapi:
+  api:
     restart: unless-stopped
     ports:
       - 8000:8000
     build: 
-      context: ./taskapi
+      context: ./api
     command: >
       sh -c "./wait-for &&
              uvicorn main:app --reload --host 0.0.0.0 --port 8000"
     volumes:
-      - ./taskapi:/app
+      - ./api:/app
     <<: *app_environment    
-
-  # backend:
-  #   restart: unless-stopped
-  #   build:
-  #     context: ./backend
-  #   ports:
-  #     - 8000:8000
-  #   command: ./entrypoint.sh
-  #   volumes:
-  #     - ./backend:/app
-  #   <<: *app_environment
   
   # telebot:
   #   restart: unless-stopped
