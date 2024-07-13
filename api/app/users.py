@@ -4,10 +4,12 @@
 Защищенные - выполняют работу с базой данных
 """
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, HTTPException, Depends
 from .config import AsyncSession, get_session
 from .models import User
 from .schemas import _BaseUserSchema, UserSchema, CreateUserSchema, UpdateUserSchema
+from . import service
 
 
 users_router = APIRouter(prefix='/users')
@@ -29,11 +31,7 @@ async def _get_user_or_404(params: _BaseUserSchema, session: AsyncSession) -> Us
 
 async def _get_user(params: _BaseUserSchema, session: AsyncSession) -> User | None:
     """возвращает объект пользователя если он есть в базе или None"""
-    query = select(User)
-    for key, value in params.__dict__.items():
-        if value is not None:
-            query = query.where(eval(f'User.{key} == params.{key}'))
-            break
+    query = await service.get_query_user(params)
     results = await session.execute(query)
     return results.scalars().first()
 
@@ -41,23 +39,15 @@ async def _get_user(params: _BaseUserSchema, session: AsyncSession) -> User | No
 @users_router.post("", status_code=201)
 async def create_user(params: CreateUserSchema, session=Depends(get_session)):
     """Создание пользователя по номеру телефона"""
-    user = await _get_user(params, session)
-    if user is not None:
-        raise HTTPException(status_code=422, detail='User alredy existing')
-    # Создание пользователя
-    user = await _create_user(params, session)
-    await session.refresh(user)
-    return user
-
-
-async def _create_user(params: CreateUserSchema, session: AsyncSession) -> User | None:
-    """Создает пользователя и возвращает его id"""
-    # Проверяем наличие пользователя в базе
-    user = User(phone_number=params.phone_number)
+    user = User(**params.model_dump(exclude_none=True))
     session.add(user)
     try:
         await session.commit()
+        await session.refresh(user)
         return user
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(status_code=422, detail='User alredy existing')
     except:
         await session.rollback()
         raise HTTPException(status_code=500, detail='create_user error')

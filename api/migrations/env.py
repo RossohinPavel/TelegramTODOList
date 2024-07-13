@@ -12,10 +12,6 @@ config = context.config
 from app.config import settings
 
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRES_USER", settings.USER)
-config.set_section_option(section, "POSTGRES_PASSWORD", settings.PASS)
-config.set_section_option(section, "POSTGRES_HOST", settings.HOST)
-config.set_section_option(section, "POSTGRES_PORT", settings.PORT)
 
 # Установка адреса бд
 config.set_main_option("sqlalchemy.url", settings.DATABASE_ASYNC_URL + "?async_fallback=True")

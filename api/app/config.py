@@ -9,10 +9,11 @@ class Settings:
     PORT: str = str(getenv("POSTGRES_PORT", ""))
     USER: str = str(getenv("POSTGRES_USER", ""))
     PASS: str = str(getenv("POSTGRES_PASSWORD", ""))
+    NAME: str = str(getenv("POSTGRES_NAME", ""))
 
     @property
     def DATABASE_ASYNC_URL(self) -> str:
-        return f'postgresql+asyncpg://{self.USER}:{self.PASS}@{self.HOST}:{self.PORT}/taskapi'
+        return f'postgresql+asyncpg://{self.USER}:{self.PASS}@{self.HOST}:{self.PORT}/{self.NAME}'
 
 
 settings = Settings()

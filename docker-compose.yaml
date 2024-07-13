@@ -5,6 +5,7 @@ x-app_environment: &app_environment
     - POSTGRES_PASSWORD
     - POSTGRES_HOST
     - POSTGRES_PORT
+    - POSTGRES_NAME
     # Telebot
     - TELEBOT_TOKEN
 

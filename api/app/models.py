@@ -1,7 +1,7 @@
-from sqlalchemy import String, text, func, DateTime, ForeignKey, case, column, select
+from sqlalchemy import String, text, func, DateTime, ForeignKey, case, column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, validates, relationship, column_property
 from typing import Annotated
-from datetime import datetime, UTC
+from datetime import datetime
 
 
 class Base(DeclarativeBase):
