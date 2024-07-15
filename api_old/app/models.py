@@ -14,7 +14,7 @@ TIME = Annotated[datetime, mapped_column(DateTime(timezone=True))]
 
 class User(Base):
     """Пользователи сервиса"""
-    __tablename__ = 'api_users'
+    __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     created_at: Mapped[CREATED_AT]
@@ -26,7 +26,7 @@ class User(Base):
 
 
 class Task(Base):
-    __tablename__ = 'api_tasks'
+    __tablename__ = 'tasks'
 
     # Техническая информация
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, index=True)
@@ -37,7 +37,7 @@ class Task(Base):
     )
 
     #Связка с пользователем
-    user_id: Mapped[int] = mapped_column(ForeignKey("api_users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship(back_populates="tasks")
     
     # Контент
@@ -54,3 +54,20 @@ class Task(Base):
             else_=0
         ).label('status')
     )
+
+    @validates("actual_on")
+    def validate_actual_on(self, key, value):
+        self.validate_time(value, self.finish_by)
+        return value
+
+    @validates("finish_by")
+    def validate_finish_by(self, key, value):
+        self.validate_time(self.actual_on, value)
+        return value
+    
+    def validate_time(self, actual_on: datetime, finish_by: datetime) -> None:
+        """Функция для сравнения времени"""
+        if actual_on is None or finish_by is None:
+            return
+        if actual_on >= finish_by:
+            raise ValueError("finish_by should be great then actual_on")
