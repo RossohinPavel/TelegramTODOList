@@ -1,9 +1,5 @@
 x-app_environment: &app_environment
   environment:
-    # API
-    - API_HOST
-    - API_PORT
-    - API_ECHO
     # Postgres
     - POSTGRES_USER
     - POSTGRES_PASSWORD
@@ -12,6 +8,8 @@ x-app_environment: &app_environment
     - POSTGRES_NAME
     # Telebot
     - BOT_TOKEN
+    # SQLAlchemy
+    - SQLA_ECHO
 
 services:
   db:
@@ -26,25 +24,13 @@ services:
       - POSTGRES_PORT
       - POSTGRES_NAME
       - POSTGRES_USER
-
-  api:
-    restart: unless-stopped
-    build: 
-      context: ./api
-    command: >
-      sh -c "./wait-for &&
-             python main.py"
-    volumes:
-      - ./api:/app
-    <<: *app_environment    
   
-  bot:
+  app:
     restart: unless-stopped
     build:
-      context: ./bot
-    command: python main.py
+      context: ./app
+    command: sh -c "./wait-for &&
+                    python main.py"
     volumes:
-      - ./bot:/app
+      - ./app:/app
     <<: *app_environment
-    depends_on:
-      - api

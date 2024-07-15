@@ -9,12 +9,9 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
-from app.config import settings
-
-section = config.config_ini_section
-
-# Установка адреса бд
+from orm.config import settings
 config.set_main_option("sqlalchemy.url", settings.DATABASE_ASYNC_URL + "?async_fallback=True")
+
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -25,7 +22,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.models import Base, User
+from orm.models import Base, User
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
