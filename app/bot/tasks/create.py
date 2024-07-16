@@ -1,5 +1,5 @@
 """Набор скриптов для работы с созданием задачи"""
-from aiogram import Router, types
+from aiogram import Router, types, F
 from aiogram.filters.command import Command
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
@@ -26,3 +26,10 @@ async def finish_create_task(message: types.Message, state: FSMContext):
     await state.clear()
     task = await service.create_task(message.from_user.id, message.text)
     await message.answer(text=str(task))
+
+
+@create_router.callback_query(F.data == 'create')
+async def create_task_from_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    """Создание задачи по нажатию кнопки"""
+    await callback_query.message.delete()
+    await init_create_task(callback_query.message, state)

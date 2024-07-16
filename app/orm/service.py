@@ -1,6 +1,6 @@
 """Содержит в себе скрипты запросов в sqlalchemy"""
 from orm.config import BaseSession, AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from functools import wraps
 from orm.models import Task
 
@@ -42,3 +42,19 @@ async def get_tasks_list(telegram_id: int, session: AsyncSession = None):
 async def get_task(id: int, session: AsyncSession = None):
     """Выдает задачу"""
     return await session.get(Task, id)
+
+
+@_session_decorator
+async def execute_task(id: int, session: AsyncSession = None):
+    """Выполняет задачу"""
+    query = (
+        update(Task).
+        where(Task.id == id).
+        values(executed=True)
+    )
+    try: 
+        await session.execute(query)
+        await session.commit()
+        return True
+    except Exception as e:
+        return str(e)
