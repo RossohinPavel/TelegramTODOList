@@ -7,10 +7,10 @@ from orm.models import Task
 async def create_list_keyboard(tasks: list[Task]) -> InlineKeyboardBuilder:
     """Создает клавиатуру по списку задач"""
     keyboard = InlineKeyboardBuilder()
-    keyboard.adjust(1)
     for task in tasks:
         text = await utils.create_task_name(task)
         keyboard.button(text=text, callback_data=f'task:{task.id}')
+    keyboard.adjust(1)
     return keyboard
 
 
@@ -24,6 +24,6 @@ async def create_task_keyboard(id: int) -> InlineKeyboardBuilder:
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Изменить', callback_data='edit')
     keyboard.button(text='Выполнить', callback_data=f'exec:{id}')
-    keyboard.button(text='Назад', callback_data='back')
+    keyboard.button(text='К списку', callback_data='back')
     keyboard.adjust(2)
-    return keyboard.as_markup()
+    return keyboard

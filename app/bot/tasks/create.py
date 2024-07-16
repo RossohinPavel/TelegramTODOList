@@ -4,6 +4,7 @@ from aiogram.filters.command import Command
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from orm import service
+from .task import _get_task_msg_content
 
 
 create_router = Router(name='__create_task__')
@@ -24,8 +25,9 @@ async def init_create_task(message: types.Message, state: FSMContext):
 async def finish_create_task(message: types.Message, state: FSMContext):
     """Завершение создания задачи. Текст сообщения послужит title для задачи"""
     await state.clear()
-    task = await service.create_task(message.from_user.id, message.text)
-    await message.answer(text=str(task))
+    id = await service.create_task(message.from_user.id, message.text)
+    text, keyboard = await _get_task_msg_content(id)
+    await message.answer(text=text, reply_markup=keyboard)
 
 
 @create_router.callback_query(F.data == 'create')
