@@ -19,7 +19,7 @@ class Settings:
 settings = Settings()
 
 # echo - просмотр sql запросов в консоли. в проде можно отключить
-engine = create_async_engine(settings.DATABASE_ASYNC_URL, echo=True)
+engine = create_async_engine(settings.DATABASE_ASYNC_URL)
 
 # Сессия
 BaseSession = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False) #type: ignore

@@ -30,6 +30,7 @@ services:
     build:
       context: ./app
     command: sh -c "./wait-for &&
+                    alembic upgrade head &&
                     python main.py"
     volumes:
       - ./app:/app
