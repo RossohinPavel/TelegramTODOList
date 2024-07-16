@@ -9,20 +9,20 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
+from orm.config import settings
+config.set_main_option("sqlalchemy.url", settings.DATABASE_ASYNC_URL + "?async_fallback=True")
+
+
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Установка адреса бд
-from app.sqla_config import settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_ASYNC_URL + "?async_fallback=True")
-
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.models import Base, User
+from orm.models import Base, User
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -70,7 +70,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            compare_server_default=True
         )
 
         with context.begin_transaction():
