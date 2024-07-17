@@ -45,8 +45,10 @@ async def create_task(telegram_id: int, title: str, description: str | None, ses
 
 
 @_session_decorator
-async def execute_task(id: int, session: AsyncSession = None):
+async def execute_task(id: int | str, session: AsyncSession = None):
     """Выполняет задачу"""
+    if isinstance(id, str):
+        id = int(id)
     stmt = (
         delete(Task).
         where(Task.id == id)
