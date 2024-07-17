@@ -10,7 +10,12 @@ WHITE_CIRCLE = '⚪️'
 async def create_task_text(task: Task) -> str:
     """Формирует текст задачи для отображения"""
     desc = task.description or ''
-    return f'{WHITE_CIRCLE} {task.title}\n{desc}'
+    return f'{await format_task_title(task.title)}\n{desc}'
+
+
+async def format_task_title(title: str) -> str:
+    """Форматирует текст заголовка задачи"""
+    return f'{WHITE_CIRCLE} {title}'
 
 
 async def parse_message_text(text: str) -> tuple[str, str | None]:

@@ -1,5 +1,5 @@
 """Содержит в себе скрипты запросов в sqlalchemy"""
-from sqlalchemy import delete
+from sqlalchemy import delete, update
 from orm.config import BaseSession, AsyncSession
 from functools import wraps
 from orm.models import Task
@@ -10,38 +10,36 @@ def _session_decorator(func):
     @wraps(func)
     async def inner(*args, **kwargs):
         async with BaseSession() as session:
-            return await func(*args, session=session, **kwargs)
+            try:
+                return await func(*args, session=session, **kwargs)
+            except Exception as e:
+                await session.rollback()
+                return str(e)
     return inner
 
 
 @_session_decorator
 async def create_task(telegram_id: int, title: str, description: str | None, session: AsyncSession = None) -> int:
     """Создание задачи. Возвращает ее id"""
-    try:
-        task = Task(telegram_id=telegram_id, title=title, description=description)
-        session.add(task)
-        await session.commit()
-        return task
-    except Exception as e:
-        await session.rollback()
-        return str(e)
+    task = Task(telegram_id=telegram_id, title=title, description=description)
+    session.add(task)
+    await session.commit()
+    return task
 
 
-# @_session_decorator
-# async def get_tasks_list(telegram_id: int, session: AsyncSession = None):
-#     """Выдает список задач пользователя в виде генератора"""
-#     query = (
-#         select(Task.id, Task.title, Task.status).
-#         where(Task.telegram_id == telegram_id, Task.executed == False)
-#     )
-#     return await session.execute(query)
-     
-
-
-# @_session_decorator
-# async def get_task(id: int, session: AsyncSession = None):
-#     """Выдает задачу"""
-#     return await session.get(Task, id)
+@_session_decorator
+async def update_task(id: int, title: str, description: str | None, session: AsyncSession = None):
+    """Выдает список задач пользователя в виде генератора"""
+    if isinstance(id, str):
+        id = int(id)
+    stmt = (
+        update(Task).
+        where(Task.id == id).
+        values(title=title, description=description)
+    )
+    await session.execute(stmt)
+    await session.commit()
+    return True
 
 
 @_session_decorator
@@ -53,9 +51,6 @@ async def execute_task(id: int | str, session: AsyncSession = None):
         delete(Task).
         where(Task.id == id)
     )
-    try: 
-        await session.execute(stmt)
-        await session.commit()
-        return True
-    except Exception as e:
-        return str(e)
+    await session.execute(stmt)
+    await session.commit()
+    return True
