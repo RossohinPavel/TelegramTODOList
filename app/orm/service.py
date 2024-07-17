@@ -1,4 +1,5 @@
 """Содержит в себе скрипты запросов в sqlalchemy"""
+from sqlalchemy import delete
 from orm.config import BaseSession, AsyncSession
 from functools import wraps
 from orm.models import Task
@@ -43,17 +44,16 @@ async def create_task(telegram_id: int, title: str, description: str | None, ses
 #     return await session.get(Task, id)
 
 
-# @_session_decorator
-# async def execute_task(id: int, session: AsyncSession = None):
-#     """Выполняет задачу"""
-#     query = (
-#         update(Task).
-#         where(Task.id == id).
-#         values(executed=True)
-#     )
-#     try: 
-#         await session.execute(query)
-#         await session.commit()
-#         return True
-#     except Exception as e:
-#         return str(e)
+@_session_decorator
+async def execute_task(id: int, session: AsyncSession = None):
+    """Выполняет задачу"""
+    stmt = (
+        delete(Task).
+        where(Task.id == id)
+    )
+    try: 
+        await session.execute(stmt)
+        await session.commit()
+        return True
+    except Exception as e:
+        return str(e)

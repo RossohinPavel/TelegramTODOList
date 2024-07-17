@@ -17,4 +17,4 @@ async def cmd_help(message: types.Message):
 
 @common_router.message(Command('start'))
 async def cmd_start(message: types.Message):
-    await message.answer(START_MSG)
+    await message.answer(START_MSG + '\n' + HELP_MSG)
