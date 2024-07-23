@@ -22,3 +22,10 @@ async def parse_message_text(text: str) -> tuple[str, str | None]:
     """Парсит сообщение для выделения title и description"""
     title, *description = text.split('\n', maxsplit=1)
     return title, description[0] if description else None
+
+
+async def reduce_task_content(text: str) -> str:
+    """Сокращает тест задачи до 15 символов"""
+    if len(text) > 12:
+        text = text[:12] + '...'
+    return text

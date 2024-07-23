@@ -1,6 +1,5 @@
-from sqlalchemy import String, text, DateTime, case, column
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, column_property
-from typing import Annotated
+from sqlalchemy import text, BigInteger
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
 
 
@@ -8,18 +7,18 @@ class Base(DeclarativeBase):
     pass
 
 
-NOW = Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]
-
-
 class Task(Base):
     __tablename__ = 'app_tasks'
 
     # Техническая информация
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     # Связка с пользователем телеграм
-    telegram_id: Mapped[int] = mapped_column(index=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger(), index=True)
+    message_id: Mapped[int] = mapped_column(BigInteger(), index=True)
+    
+    # Временная метка сообщения
+    creation_time: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
 
     # Контент
-    title: Mapped[str] = mapped_column(String(50))
-    description: Mapped[str | None]
+    content: Mapped[str]
