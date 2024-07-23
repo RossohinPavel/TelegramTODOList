@@ -28,14 +28,12 @@ async def create_task(telegram_id: int, message_id: int, content: str, session: 
 
 
 @_session_decorator
-async def update_task(id: int, title: str, description: str | None, session: AsyncSession = None):
+async def update_task(telegram_id: int, message_id: int, content: str, session: AsyncSession = None):
     """Выдает список задач пользователя в виде генератора"""
-    if isinstance(id, str):
-        id = int(id)
     stmt = (
         update(Task).
-        where(Task.id == id).
-        values(title=title, description=description)
+        where(Task.telegram_id == telegram_id, Task.message_id == message_id).
+        values(content=content)
     )
     await session.execute(stmt)
     await session.commit()

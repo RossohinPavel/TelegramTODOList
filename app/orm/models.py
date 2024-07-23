@@ -1,4 +1,4 @@
-from sqlalchemy import text
+from sqlalchemy import text, BigInteger
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
 
@@ -14,8 +14,8 @@ class Task(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     # Связка с пользователем телеграм
-    telegram_id: Mapped[int] = mapped_column(index=True)
-    message_id: Mapped[int] = mapped_column(index=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger(), index=True)
+    message_id: Mapped[int] = mapped_column(BigInteger(), index=True)
     
     # Временная метка сообщения
     creation_time: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))

@@ -11,17 +11,10 @@ create_router = Router(name='__create_task__')
 @create_router.message(F.content_type.in_({'text'}))
 async def init_create_task(message: types.Message):
     """Инициализация создания задачи по текстовому вводу пользователя"""
-    task = await service.create_task(message.from_user.id, message.message_id, message.text)
-    if isinstance(task, str):
-        await message.answer(text=task)
-    else:
-        await show_task_entity(message, task)
     await message.delete()
-
-
-async def show_task_entity(message: types.Message, task: models.Task):
-    """Показывает задачу"""
-    text = task.content
     kb = await keyboards.create_task_keyboard()
-    msg = await message.answer(text=text)
-    await msg.edit_reply_markup(reply_markup=kb)
+    task_message = await message.answer(message.text, reply_markup=kb)
+    task = await service.create_task(task_message.chat.id, task_message.message_id, task_message.text)
+    if isinstance(task, str):
+        task_message.delete()
+        await message.answer(text=task)

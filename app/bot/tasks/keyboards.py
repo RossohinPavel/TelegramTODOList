@@ -1,5 +1,5 @@
 """Набор скриптов для генерации клавиатур"""
-from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup, InlineKeyboardButton
 
 
 async def create_task_keyboard() -> InlineKeyboardMarkup:
@@ -14,9 +14,12 @@ async def create_task_keyboard() -> InlineKeyboardMarkup:
 async def create_task_edit_keyboard() -> InlineKeyboardMarkup:
     """Генерация клавиатуры для редактирования задачи"""
     keyboard = InlineKeyboardBuilder()
-    keyboard.button(text='Название', callback_data=f'title')
-    keyboard.button(text='Описание', callback_data=f'desc')
-    keyboard.button(text='Отмена', callback_data=f'back')
-    keyboard.button(text='Сохранить', callback_data=f'save')
-    keyboard.adjust(2)
+    # keyboard.button(text='Подзадача', callback_data=f'sub')
+    keyboard.button(text='Содержание', callback_data=f'content')
+    keyboard.adjust(1)
+    keyboard.row(
+        InlineKeyboardButton(text='Отмена', callback_data='back'),
+        InlineKeyboardButton(text='Сохранить', callback_data=f'save'),
+        width=2
+    )
     return keyboard.as_markup()
