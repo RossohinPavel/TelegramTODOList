@@ -14,13 +14,13 @@ class TaskState(StatesGroup):
 update_router = Router(name='__update__')
 
 
-@update_router.callback_query(lambda c: c.data and c.data.startswith('exec:'))
+@update_router.callback_query(lambda c: c.data and c.data.startswith('exec'))
 async def execute_task(callback_query: types.CallbackQuery):
     """Ловит калбэк с клавиатуры и выполняет задачу"""
+    await service.execute_task(callback_query.from_user.id, callback_query.message.message_id)
     await callback_query.message.delete()
-    task_name, *_ = callback_query.message.text.split('\n', maxsplit=1)
-    await callback_query.answer(text=f'Задача <{task_name}> выполнена.')
-    await service.execute_task(callback_query.data[5:])
+    task = await utils.reduce_task_content(callback_query.message.text)
+    await callback_query.answer(text=f'Задача <{task}> выполнена.')
 
 
 @update_router.callback_query(lambda c: c.data and c.data.startswith('edit:'))

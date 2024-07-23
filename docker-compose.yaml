@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
     build:
       context: ./app
-    command: sh -c "./wait-for &&
+    command: sh -c "python wait-for &&
                     alembic upgrade head &&
                     python main.py"
     volumes:

@@ -2,11 +2,11 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup
 
 
-async def create_task_keyboard(id: int) -> InlineKeyboardMarkup:
+async def create_task_keyboard() -> InlineKeyboardMarkup:
     """Формирует клавиатуру для задачи"""
     keyboard = InlineKeyboardBuilder()
-    keyboard.button(text='Изменить', callback_data=f'edit:{id}')
-    keyboard.button(text='Выполнить', callback_data=f'exec:{id}')
+    keyboard.button(text='Изменить', callback_data=f'edit')
+    keyboard.button(text='Выполнить', callback_data=f'exec')
     keyboard.adjust(2)
     return keyboard.as_markup()
 

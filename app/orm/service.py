@@ -19,9 +19,9 @@ def _session_decorator(func):
 
 
 @_session_decorator
-async def create_task(telegram_id: int, title: str, description: str | None, session: AsyncSession = None) -> int:
+async def create_task(telegram_id: int, message_id: int, content: str, session: AsyncSession = None) -> Task:
     """Создание задачи. Возвращает ее id"""
-    task = Task(telegram_id=telegram_id, title=title, description=description)
+    task = Task(telegram_id=telegram_id, message_id=message_id, content=content)
     session.add(task)
     await session.commit()
     return task
@@ -43,13 +43,11 @@ async def update_task(id: int, title: str, description: str | None, session: Asy
 
 
 @_session_decorator
-async def execute_task(id: int | str, session: AsyncSession = None):
+async def execute_task(telegram_id: int, message_id: int, session: AsyncSession = None):
     """Выполняет задачу"""
-    if isinstance(id, str):
-        id = int(id)
     stmt = (
         delete(Task).
-        where(Task.id == id)
+        where(Task.telegram_id == telegram_id, Task.message_id == message_id)
     )
     await session.execute(stmt)
     await session.commit()
