@@ -1,5 +1,5 @@
 """Содержит в себе скрипты запросов в sqlalchemy"""
-from sqlalchemy import delete, update
+from sqlalchemy import delete, update, select, text
 from orm.config import BaseSession, AsyncSession
 from functools import wraps
 from orm.models import Task
@@ -50,3 +50,23 @@ async def execute_task(telegram_id: int, message_id: int, session: AsyncSession 
     await session.execute(stmt)
     await session.commit()
     return True
+
+
+@_session_decorator
+async def get_old_tasks(session: AsyncSession = None) -> tuple[Task]:
+    """Для получения списка устаревших задач"""
+    query = (
+        select(Task)
+        .where(Task.creation_time < text("TIMEZONE('utc', now() - make_interval(days => 2) + make_interval(mins => 10))"))
+    )
+    res = await session.execute(query)
+    return tuple(res.scalars())
+
+
+@_session_decorator
+async def update_old_tasks(tasks: list[Task], session: AsyncSession = None):
+    """Обновляет список задач"""
+    for task in tasks:
+        task.creation_time = text("TIMEZONE('utc', now())")
+        session.add(task)
+    await session.commit()

@@ -3,7 +3,7 @@ from aiogram import Router, types, F
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from orm import service
-from . import keyboards
+from . import keyboards as kb
 from . import utils
 
 
@@ -27,8 +27,7 @@ async def execute_task(callback_query: types.CallbackQuery):
 async def init_edit(callback_query: types.CallbackQuery, state: FSMContext):
     """Инициализация редактирования задачи"""
     await state.set_state(TaskState.edit)
-    kb = await keyboards.create_task_edit_keyboard()
-    msg = await callback_query.message.edit_reply_markup(reply_markup=kb)
+    msg = await callback_query.message.edit_reply_markup(reply_markup=kb.EDIT_KEYBOARD)
     data = {'origin_text': msg.text, 'task_msg': msg, 'query_msg': None}
     await state.set_data(data)
 
@@ -54,8 +53,7 @@ async def _back_to_main_entity(callback_query: types.CallbackQuery, state: FSMCo
         await service.update_task(msg.chat.id, msg.message_id, msg.text)
     else:
         await callback_query.message.edit_text(text=data['origin_text'])
-    kb = await keyboards.create_task_keyboard()
-    await callback_query.message.edit_reply_markup(reply_markup=kb)
+    await callback_query.message.edit_reply_markup(reply_markup=kb.TASK_KEYBOARD)
 
 
 @update_router.callback_query(TaskState.edit, F.data == 'content')

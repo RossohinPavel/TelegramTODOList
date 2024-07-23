@@ -2,7 +2,7 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup, InlineKeyboardButton
 
 
-async def create_task_keyboard() -> InlineKeyboardMarkup:
+def create_task_keyboard() -> InlineKeyboardMarkup:
     """Формирует клавиатуру для задачи"""
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Изменить', callback_data=f'edit')
@@ -11,7 +11,7 @@ async def create_task_keyboard() -> InlineKeyboardMarkup:
     return keyboard.as_markup()
 
 
-async def create_task_edit_keyboard() -> InlineKeyboardMarkup:
+def create_task_edit_keyboard() -> InlineKeyboardMarkup:
     """Генерация клавиатуры для редактирования задачи"""
     keyboard = InlineKeyboardBuilder()
     # keyboard.button(text='Подзадача', callback_data=f'sub')
@@ -23,3 +23,7 @@ async def create_task_edit_keyboard() -> InlineKeyboardMarkup:
         width=2
     )
     return keyboard.as_markup()
+
+
+TASK_KEYBOARD = create_task_keyboard()
+EDIT_KEYBOARD = create_task_edit_keyboard()
