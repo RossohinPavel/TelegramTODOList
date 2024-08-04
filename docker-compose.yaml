@@ -13,7 +13,7 @@ x-app_environment: &app_environment
 
 services:
   db:
-    restart: unless-stopped
+    restart: always
     image: postgres:16.3-alpine
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
@@ -26,7 +26,7 @@ services:
       - POSTGRES_USER
   
   app:
-    restart: unless-stopped
+    restart: always
     build:
       context: ./app
     command: sh -c "python wait-for &&
